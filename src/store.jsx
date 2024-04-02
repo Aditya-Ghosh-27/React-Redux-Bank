@@ -1,12 +1,18 @@
-import { createStore } from "redux";
+import { combineReducers, createStore } from "redux";
 
-const initialState = {
+const initialStateAccount = {
   balance: 0,
   loan: 0,
   loanPurpose: "",
 };
 
-function reducer(state = initialState, action) {
+const initialStateCustomer = {
+  fullName: "",
+  nationalID: "",
+  createdAt: "",
+};
+
+function accountReducer(state = initialStateAccount, action) {
   switch (action.type) {
     case "account/deposit":
       return { ...state, balance: state.balance + action.payload };
@@ -18,7 +24,7 @@ function reducer(state = initialState, action) {
         ...state,
         loan: action.payload.amount,
         loanPurpose: action.payload.purpose,
-        balance: state.balance + action.payload.amount
+        balance: state.balance + action.payload.amount,
       };
     case "account/payLoan":
       return {
@@ -32,8 +38,30 @@ function reducer(state = initialState, action) {
   }
 }
 
+function customerReducer(state = initialStateCustomer, action) {
+  switch (action.type) {
+    case "customer/createCustomer":
+      return {
+        ...state,
+        fullName: action.payload.fullName,
+        nationalID: action.payload.fullName,
+        createdAt: action.payload.nationalId,
+      };
+    case "customer/updateCustomer":
+      return { ...state, fullName: action.payload };
+    default:
+      return state;
+  }
+}
+
+const rootReducer = combineReducers({
+  account: accountReducer,
+  customer: customerReducer
+});
+
 // createStore will return a store (this is a depricated function)
-const store = createStore(reducer);
+const store = createStore(rootReducer);
+
 
 // store.dispatch({ type: "account/deposit", payload: 500 });
 // store.dispatch({ type: "account/withdraw", payload: 200 });
@@ -48,29 +76,52 @@ const store = createStore(reducer);
 // So they are really not a redux thing and that redux would work perfectly fine without it
 // They are usefull conventions that redux devs has used forever
 
-function deposit(amount){
-  return { type: "account/deposit", payload: amount }
+function deposit(amount) {
+  return { type: "account/deposit", payload: amount };
 }
-function withdraw(amount){
-  return {type: "account/withdraw", payload: amount} 
+function withdraw(amount) {
+  return { type: "account/withdraw", payload: amount };
 }
-function requestLoan(amount, purpose){
+function requestLoan(amount, purpose) {
   return {
     type: "account/requestLoan",
     payload: {
       amount,
-      purpose
-    }
-  }
+      purpose,
+    },
+  };
 }
-function payLoan(){
-  return {type: "account/payLoan"}
+function payLoan() {
+  return { type: "account/payLoan" };
 }
 
-store.dispatch(deposit(500))
-store.dispatch(withdraw(200))
-console.log(store.getState())
+store.dispatch(deposit(500));
+store.dispatch(withdraw(200));
+console.log(store.getState());
 
 store.dispatch(requestLoan(1000, "Buy a car"));
-store.dispatch(payLoan())
-console.log(store.getState())
+store.dispatch(payLoan());
+console.log(store.getState());
+
+function createCustomer(fullName, nationalID) {
+  return {
+    type: "customer/createCustomer",
+    payload: {
+      fullName,
+      nationalID,
+      // We could also update the createdAt inside the reducer function(computing the current state) but that would actually be a side effect. And we shouldn't have side effects inside the reducer function
+      createdAt: new Date().toISOString(),
+    },
+  };
+}
+
+function updateName(fullName) {
+  return {
+    type: "customer/updateName",
+    payload: fullName,
+  };
+}
+
+store.dispatch(createCustomer("Aditya Ghosh", "7578435639"));
+store.dispatch(updateName(250));
+console.log(store.getState());
