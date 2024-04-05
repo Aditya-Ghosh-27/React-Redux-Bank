@@ -2,6 +2,7 @@ import { applyMiddleware, combineReducers, createStore } from "redux";
 // We will be organizing our application now into features
 // We will also organize our components into these same feature folders
 import thunk from "redux-thunk";
+import { composeWithDevTools } from "redux-devtools-extension";
 import accountReducer from "./features/accounts/accountSlice";
 import customerReducer from "./features/customers/customerSlice";
 
@@ -11,7 +12,7 @@ const rootReducer = combineReducers({
 });
 
 // createStore will return a store (this is a depricated function)
-const store = createStore(rootReducer, applyMiddleware(thunk));
+const store = createStore(rootReducer, composeWithDevTools(applyMiddleware(thunk)));
 
 export default store
 
