@@ -13,7 +13,8 @@ const accountSlice = createSlice({
   initialState,
   reducers: {
     deposit(state, action){
-      state.balance = state.balance + action.payload
+      state.balance = state.balance + action.payload;
+      state.isLoading = false;
     },
     withdraw(state, action) {
       state.balance = state.balance - action.payload
@@ -32,22 +33,43 @@ const accountSlice = createSlice({
       state.loanPurpose = action.payload.purpose;
       state.balance = state.balance + action.payload.amount;
     }},
-    payLoan(state, action){
+    payLoan(state){
       state.balance -= state.loan;
       state.loan = 0;
       state.loanPurpose = '';
-    }  
+    },
+    convertingCurrency(state){
+      state.isLoading = true;
+    }
   }
 })
 
-export const {deposit, withdraw, requestLoan, payLoan} = accountSlice.actions;
+export const { withdraw, requestLoan, payLoan} = accountSlice.actions;
+
+export function deposit(amount, currency) {
+  if (currency === "USD") return { type: "account/deposit", payload: amount };
+
+  // eslint-disable-next-line no-unused-vars
+  return async function(dispatch, getState) {
+    dispatch({ type: "account/convertingCurrency" })
+    // API call
+    const response = await fetch(`https://api.frankfurter.app/latest?amount=${amount}&from=${currency}&to=USD`);
+    const data = await response.json(); 
+    // console.log(data);
+    // And now we have the value that we actually want to dispatch to the store
+    const converted = data.rates.USD;
+
+    // dispatach an action 
+    dispatch({ type: "account/deposit", payload: converted});
+  }
+}
 
 export default accountSlice.reducer;
 
 // export default function accountReducer(state = initialStateAccount, action) {
 //   switch (action.type) {
 //     case "account/deposit":
-//       return { ...state, balance: state.balance + action.payload, isLoading: false };
+      // return { ...state, balance: state.balance + action.payload, isLoading: false };
 //     case "account/withdraw":
 //       return { ...state, balance: state.balance - action.payload };
 //     case "account/requestLoan":
